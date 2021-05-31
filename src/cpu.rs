@@ -72,30 +72,21 @@ fn get_cpu_windows(legal_regex: Regex, name_end_regex: Regex) -> (String, u16, f
 }
 
 fn get_cpu_linux(legal_regex: Regex, name_end_regex: Regex) -> (String, u16, f32) {
-    let mut buffer = String::new();
-    match File::open("/proc/cpuinfo") {
-        Ok(mut content) => content.read_to_string(&mut buffer).unwrap(),
-        Err(e) => panic!("Failed to read file: {}", e),
-    };
-    // get file lines and retain the slice we need
-    let file_lines: Vec<_> = buffer.split("\n")
-        .collect::<Vec<&str>>()[..27]
-        .to_vec();
-
-    // filter for only the three parts we need
-    let items = &file_lines
-        .into_iter()
-        .filter(|line| {
-            line.contains("model name") ||
-            line.contains("cpu MHz")    ||
-            line.contains("cpu cores")
-        })
-        .map(|item| item.split("\t: ").collect::<Vec<_>>()[1])
+    let lscpu_output = Command::new("bash")
+        .args(vec![
+            "-c",
+            r"lscpu | grep -E '^Core\(s\) per socket|^Model name|^CPU MHz' | sed 's/^.*:\s*//'"
+        ])
+        .output()
+        .unwrap();
+    let items = str::from_utf8(&lscpu_output.stdout)
+        .unwrap()
+        .split("\n")
         .collect::<Vec<_>>();
 
-    let mut name = legal_regex.replace(items[0], "").to_string();
+    let cores = items[0].parse::<u16>().unwrap();
+    let mut name = legal_regex.replace(items[1], "").to_string();
     name = name_end_regex.replace(&name, "").to_string();
-    let cores = items[2].parse::<u16>().unwrap();
-    let mhz = items[1].parse::<f32>().unwrap();
+    let mhz = items[2].parse::<f32>().unwrap();
     (name, cores, mhz)
 }
