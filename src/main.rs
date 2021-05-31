@@ -2,7 +2,7 @@ extern crate colored;
 
 mod sys;
 
-use sys::cpu::CPU;
+use sys::hw::{CPU, GPU};
 use colored::*;
 
 trait Dedup<T: PartialEq + Clone> {
@@ -23,8 +23,11 @@ impl<T: PartialEq + Clone> Dedup<T> for Vec<T> {
 }
 
 fn main() {
-    let cpuinfo = CPU::get_cpu_info();
+    let cpuinfo = CPU::get_info();
+    let gpuinfo = GPU::get_info();
+
     print_line("CPU", cpuinfo);
+    print_line("GPU", gpuinfo);
 }
 
 fn print_line<T: std::fmt::Display>(title: &str, info: T) {
