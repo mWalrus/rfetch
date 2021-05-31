@@ -1,3 +1,5 @@
+mod cpuinfo;
+
 fn main() {
-    println!("Hello, world!");
+    println!("OS: lul");
 }
