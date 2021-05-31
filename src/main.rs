@@ -1,8 +1,8 @@
 extern crate colored;
 
-mod cpu;
+mod sys;
 
-use cpu::CPU;
+use sys::cpu::CPU;
 use colored::*;
 
 trait Dedup<T: PartialEq + Clone> {
