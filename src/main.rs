@@ -1,6 +1,9 @@
+extern crate colored;
+
 mod cpu;
 
 use cpu::CPU;
+use colored::*;
 
 trait Dedup<T: PartialEq + Clone> {
     fn clear_duplicates(&mut self);
@@ -21,5 +24,9 @@ impl<T: PartialEq + Clone> Dedup<T> for Vec<T> {
 
 fn main() {
     let cpuinfo = CPU::get_cpu_info();
-    println!("CPU info: {}", cpuinfo);
+    print_line("CPU", cpuinfo);
+}
+
+fn print_line<T: std::fmt::Display>(title: &str, info: T) {
+    println!("{} {}", format!("{}:", title).bold().blue(), &info);
 }
