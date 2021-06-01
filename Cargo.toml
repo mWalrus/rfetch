@@ -9,3 +9,5 @@ edition = "2018"
 [dependencies]
 regex = "1.5.4"
 colored = "2"
+time = "0.2.16"
+chrono = "0.4.19"
