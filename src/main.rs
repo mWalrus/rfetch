@@ -3,6 +3,7 @@ extern crate colored;
 mod sys;
 
 use sys::hw::{CPU, GPU};
+use sys::os::OS;
 use colored::*;
 
 trait Dedup<T: PartialEq + Clone> {
