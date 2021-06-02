@@ -11,3 +11,15 @@ fn main() {
 
     println!("{}", &sys_info);
 }
+
+// Create structs for Hardware and OS/Software related things
+// impl Display for both and then use as fields in SysInfo struct
+
+
+// get linux hostname:
+// cat /etc/hostname
+// get windows hostname:
+// hostname
+
+// get linux meminfo:
+// grep 'Mem[^A]' /proc/meminfo
