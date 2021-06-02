@@ -7,24 +7,17 @@ use regex::Regex;
 pub fn os_name() -> String {
     match cfg!(windows) {
         true => {
-            let value_regex = Regex::new(r"\s\s(\w+\s?)+").unwrap();
             let name_cmd = Command::new("cmd")
                 .args(vec![
                     "/C",
-                    "systeminfo | findstr /B /C:'OS Name'"
+                    "wmic os get Caption /value"
                 ])
                 .output()
                 .unwrap();
-            let mut name = str::from_utf8(&name_cmd.stdout)
+            let stdout = str::from_utf8(&name_cmd.stdout)
                 .unwrap()
                 .to_owned();
-            name = value_regex.captures(&name)
-                .unwrap()
-                .get(0)
-                .unwrap()
-                .as_str()
-                .replace("  ", "");
-
+            let name = stdout.replace("Caption=", "").replace("\n", "");
             name.to_owned()
         },
         false => {
