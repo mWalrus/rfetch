@@ -64,12 +64,13 @@ pub fn cpu_info() -> String {
             let wimc = Command::new("cmd")
             .args(vec![
                 "/C",
-                "wimc cpu get name, maxclockspeed, numberofcores"
+                "wmic cpu get name, maxclockspeed, numberofcores"
             ])
             .output()
             .expect("Failed to execute wimc");
             // convert command output bytes from utf8 to human readable string
             let wimc_out = str::from_utf8(&wimc.stdout).unwrap();
+            println!("{}", &wimc_out);
 
             // format the outputted data
             let raw_cpu_data: &str = wimc_out.split("\n").collect::<Vec<_>>()[2];
