@@ -9,15 +9,14 @@ pub fn gpu_info() -> String {
             let gpu_cmd = Command::new("cmd")
                 .args(vec![
                     "/C",
-                    "wimc path win32_videocardcontroller get description"
+                    "wmic path win32_VideoController get name /value"
                 ])
                 .output()
                 .unwrap();
-            let (vendor, model) = str::from_utf8(&gpu_cmd.stdout)
+            gpu_info = str::from_utf8(&gpu_cmd.stdout)
                 .unwrap()
-                .split_once(" ")
-                .unwrap();
-            gpu_info = format!("{} {}", vendor, model);
+                .replace("Name=", "")
+                .replace("\n", "");
         },
         false => {
             let vendor_cmd = Command::new("bash")
@@ -70,10 +69,9 @@ pub fn cpu_info() -> String {
             .expect("Failed to execute wimc");
             // convert command output bytes from utf8 to human readable string
             let wimc_out = str::from_utf8(&wimc.stdout).unwrap();
-            println!("{}", &wimc_out);
 
             // format the outputted data
-            let raw_cpu_data: &str = wimc_out.split("\n").collect::<Vec<_>>()[2];
+            let raw_cpu_data: &str = wimc_out.split("\n").collect::<Vec<_>>()[1];
             let white_space_regex = Regex::new(r"\s{2,}").unwrap();
             let formatted_output = white_space_regex.replace_all(raw_cpu_data, ",");
             let cpu_info: Vec<_> = formatted_output.split(",").filter(|n| !n.is_empty()).collect();

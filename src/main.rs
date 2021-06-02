@@ -1,6 +1,6 @@
 extern crate colored;
-extern crate time;
 extern crate chrono;
+extern crate serde;
 
 mod sys;
 

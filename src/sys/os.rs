@@ -1,6 +1,5 @@
 use crate::chrono::offset::{TimeZone, Utc};
 use std::{process::Command, str};
-
 use chrono::Duration;
 use regex::Regex;
 
@@ -58,7 +57,9 @@ pub fn uptime() -> Option<String> {
                 .as_str()
                 .replace("  ", "");
             let millis_regex = Regex::new(r"(\.|,)\d{6}(\+|-)\d{2,3}").unwrap();
-            boot_date_time_fmt = millis_regex.replace(&boot_date_time_fmt, "").to_string();
+            boot_date_time_fmt = millis_regex
+                .replace(&boot_date_time_fmt, "")
+                .to_string();
             let boot = utc.datetime_from_str(&boot_date_time_fmt, "%Y%m%d%H%M%S").unwrap();
             let up_since_boot = now.signed_duration_since(boot);
             // break out values from above
