@@ -1,3 +1,5 @@
+use chrono::Duration;
+
 use crate::colored::*;
 use std::fmt;
 
@@ -38,11 +40,13 @@ impl SysInfo {
     pub fn new() -> SysInfo {
         let cpu = hw::cpu_info();
         let gpu = hw::gpu_info();
+        let os = os::os_name();
+        let uptime = os::uptime().unwrap();
 
         SysInfo {
-            os: String::from("value"),
+            os,
             kernel: String::from("value"),
-            uptime: String::from("value"),
+            uptime,
             terminal: String::from("value"),
             shell: String::from("value"),
             cpu,

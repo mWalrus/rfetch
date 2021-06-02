@@ -1,50 +1,8 @@
-use crate::chrono::{NaiveDateTime, offset::{TimeZone, Utc}};
-use crate::time;
+use crate::chrono::offset::{TimeZone, Utc};
 use std::{process::Command, str};
 
-use chrono::DateTime;
+use chrono::Duration;
 use regex::Regex;
-use time::PrimitiveDateTime;
-
-pub struct Uptime {
-    years: Option<u8>,
-    months: Option<u8>,
-    days: Option<u8>,
-    hours: Option<u8>,
-    minutes: Option<u8>,
-    seconds: Option<u8>,
-}
-
-impl Uptime {
-    pub fn new(
-        years: Option<u8>,
-        months: Option<u8>,
-        days: Option<u8>,
-        hours: Option<u8>,
-        minutes: Option<u8>,
-        seconds: Option<u8>,
-    ) -> Uptime {
-        Uptime {
-            years,
-            months,
-            days,
-            hours,
-            minutes,
-            seconds,
-        }
-    }
-
-    pub fn format(&self) -> String {
-        let mut output = String::new();
-        output = append_field(self.years, &mut output, "year");
-        output = append_field(self.months, &mut output, "month");
-        output = append_field(self.days, &mut output, "day");
-        output = append_field(self.hours, &mut output, "hour");
-        output = append_field(self.minutes, &mut output, "minute");
-        output = append_field(self.seconds, &mut output, "second");
-        output
-    }
-}
 
 pub fn os_name() -> String {
     match cfg!(windows) {
@@ -70,12 +28,22 @@ pub fn os_name() -> String {
             name.to_owned()
         },
         false => {
-            String::new()
+            let name_cmd = Command::new("bash")
+                .args(vec![
+                    "-c",
+                    "grep '^NAME=' /etc/os-release | awk -F= '{print $2}' | sed 's/\"//g'"
+                ])
+                .output()
+                .unwrap();
+            let stdout = str::from_utf8(&name_cmd.stdout).unwrap();
+            let name = &stdout.replace("\n", "");
+            name.to_owned()
         }
     }
 }
 
-fn uptime(val_regex: Regex) -> Uptime {
+pub fn uptime() -> Option<String> {
+    let value_regex = Regex::new(r"\s\s(\w+\s?)+").unwrap();
     let utc = Utc;
     let now = Utc::now();
     match cfg!(windows) {
@@ -90,7 +58,7 @@ fn uptime(val_regex: Regex) -> Uptime {
             let boot_date_time_raw = str::from_utf8(&boot_date_time_cmd.stdout)
                 .unwrap()
                 .to_owned();
-            let mut boot_date_time_fmt = val_regex.captures(&boot_date_time_raw)
+            let mut boot_date_time_fmt = value_regex.captures(&boot_date_time_raw)
                 .unwrap()
                 .get(0)
                 .unwrap()
@@ -101,29 +69,71 @@ fn uptime(val_regex: Regex) -> Uptime {
             let boot = utc.datetime_from_str(&boot_date_time_fmt, "%Y%m%d%H%M%S").unwrap();
             let up_since_boot = now.signed_duration_since(boot);
             // break out values from above
+            format(&up_since_boot)
         },
         false => {
-
+            let uptime_cmd = Command::new("bash")
+                .args(vec![
+                    "-c",
+                    "uptime -p | sed 's/up //'"
+                ])
+                .output()
+                .unwrap();
+            let stdout = str::from_utf8(&uptime_cmd.stdout).unwrap();
+            let uptime = stdout.replace("\n", "");
+            Some(uptime)
         }
     }
-
-    Uptime::new(None, None, None, None, None, None)
 }
 
-fn append_field<'a>(value: Option<u8>, input: &'a mut String, suffix: &str) -> String {
-    if value.is_some() {
-        let unwrapped = value.unwrap();
+pub fn format(duration: &Duration) -> Option<String> {
+    let input_seconds = duration.num_seconds();
+    let seconds_in_minute = 60;
+    let seconds_in_hour = seconds_in_minute * 60;
+    let seconds_in_day = seconds_in_hour * 24;
+    let seconds_in_month = seconds_in_day * 31;
+    let seconds_in_year = seconds_in_month * 12;
+
+    let years = input_seconds/seconds_in_year;
+
+    let mut remaining_seconds = input_seconds - (years * seconds_in_year);
+    let months = remaining_seconds/seconds_in_month;
+
+    remaining_seconds = remaining_seconds - (months * seconds_in_month);
+    let days = remaining_seconds/seconds_in_day;
+
+    remaining_seconds = remaining_seconds - (days * seconds_in_day);
+    let hours = remaining_seconds/seconds_in_hour;
+
+    remaining_seconds = remaining_seconds - (hours * seconds_in_hour);
+    let minutes = remaining_seconds/seconds_in_minute;
+
+    remaining_seconds = remaining_seconds - (minutes * seconds_in_minute);
+    let seconds = remaining_seconds;
+
+    let mut output = String::new();
+    output = append_field(years, &mut output, "year");
+    output = append_field(months, &mut output, "month");
+    output = append_field(days, &mut output, "day");
+    output = append_field(hours, &mut output, "hour");
+    output = append_field(minutes, &mut output, "minute");
+    output = append_field(seconds, &mut output, "second");
+    if output.is_empty() { None } else { Some(output) }
+}
+
+fn append_field<'a>(value: i64, input: &'a mut String, suffix: &str) -> String {
+    if value.gt(&0) {
         if !input.is_empty() {
             input.push_str(", ");
         }
         input.push_str(
             &format!(
                 "{} {}",
-                &unwrapped,
+                &value,
                 suffix,
             )
         );
-        if unwrapped > 1 {
+        if value.gt(&1) {
             input.push('s');
         }
 

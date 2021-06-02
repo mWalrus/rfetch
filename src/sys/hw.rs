@@ -3,7 +3,7 @@ use std::{process::Command, str};
 use regex::Regex;
 
 pub fn gpu_info() -> String {
-    let mut gpu_info = String::new();
+    let gpu_info;
     match cfg!(windows) {
         true => {
             let gpu_cmd = Command::new("cmd")
@@ -57,7 +57,7 @@ pub fn cpu_info() -> String {
     //      mhz = sudo dmesg | grep "MHz" | head -1 | awk '{print $5}'
     //      cores = grep -m1 "^siblings" /proc/cpuinfo
     //
-    let mut cpu_string = String::new();
+    let cpu_string;
     match cfg!(windows) {
         true => {
             // run command and get output bytes
