@@ -39,7 +39,7 @@ impl SysInfo {
         let cpu = hw::cpu_info();
         let gpu = hw::gpu_info();
         let os = os::os_name();
-        let uptime = os::uptime().unwrap();
+        let uptime = os::uptime();
 
         SysInfo {
             os,
