@@ -15,7 +15,7 @@ pub fn os_name() -> String {
             let stdout = str::from_utf8(&name_cmd.stdout)
                 .unwrap()
                 .to_owned();
-            let name = stdout.replace("Caption=", "").replace("\n", "");
+            let name = stdout.replace("Caption=", "").replace("\n", "").replace("\r", "");
             name.to_owned()
         },
         false => {
@@ -50,10 +50,9 @@ pub fn uptime() -> String {
             let uptime_split = uptime_raw.split("\n").collect::<Vec<_>>();
             let mut uptime_map = HashMap::new();
             for field in uptime_split[2..=5].into_iter() {
-                let mut iter = replace_regex.splitn(&field, 1);
+                let mut iter = replace_regex.splitn(&field, 2);
                 let key = iter.next()
                     .unwrap()
-                    .to_lowercase()
                     .to_string();
                 let value = iter.next()
                     .unwrap()
@@ -95,10 +94,6 @@ fn append_uptime_field<'a>(value: i64, input: &'a mut String, suffix: &str) -> S
                 suffix,
             )
         );
-        if value.gt(&1) {
-            input.push('s');
-        }
-
     }
     input.clone()
 }

@@ -16,7 +16,8 @@ pub fn gpu_info() -> String {
             gpu_info = str::from_utf8(&gpu_cmd.stdout)
                 .unwrap()
                 .replace("Name=", "")
-                .replace("\n", "");
+                .replace("\n", "")
+                .replace("\r", "");
         },
         false => {
             let vendor_cmd = Command::new("bash")
