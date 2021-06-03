@@ -1,6 +1,4 @@
-use crate::chrono::offset::Utc;
 use std::{process::Command, str};
-use chrono::Duration;
 use regex::Regex;
 use std::collections::HashMap;
 
@@ -37,8 +35,6 @@ pub fn os_name() -> String {
 
 pub fn uptime() -> String {
     let replace_regex = Regex::new(r"\s{2,}:\s").unwrap();
-    let utc = Utc;
-    let now = Utc::now();
     match cfg!(windows) {
         true => {
             let uptime_cmd = Command::new("powershell")
@@ -51,16 +47,17 @@ pub fn uptime() -> String {
             let uptime_raw = str::from_utf8(&uptime_cmd.stdout)
                 .unwrap()
                 .to_owned();
-            let mut uptime_split = uptime_raw.split("\n").collect::<Vec<_>>();
+            let uptime_split = uptime_raw.split("\n").collect::<Vec<_>>();
             let mut uptime_map = HashMap::new();
-            for field in uptime_split[..4].into_iter() {
-                let mut iter = replace_regex.splitn(&field, 2);
+            for field in uptime_split[2..=5].into_iter() {
+                let mut iter = replace_regex.splitn(&field, 1);
                 let key = iter.next()
                     .unwrap()
                     .to_lowercase()
                     .to_string();
                 let value = iter.next()
                     .unwrap()
+                    .replace("\r", "")
                     .parse::<i64>()
                     .unwrap();
                 uptime_map.insert(key, value);
