@@ -15,7 +15,10 @@ pub fn os_name() -> String {
             let stdout = str::from_utf8(&name_cmd.stdout)
                 .unwrap()
                 .to_owned();
-            let name = stdout.replace("Caption=", "").replace("\n", "").replace("\r", "");
+            let name = stdout
+                .replace("Caption=", "")
+                .replace("\n", "")
+                .replace("\r", "");
             name.to_owned()
         },
         false => {
@@ -80,6 +83,66 @@ pub fn uptime() -> String {
             uptime
         }
     }
+}
+
+pub fn kernel() -> String {
+    match cfg!(windows) {
+        true => {
+            let kernel_command = Command::new("cmd")
+                .args(vec![
+                    "/C",
+                    "echo %os%"
+                ])
+                .output()
+                .unwrap();
+            str::from_utf8(&kernel_command.stdout)
+                .unwrap()
+                .to_string()
+        },
+        false => {
+            let kernel_command = Command::new("bash")
+                .args(vec![
+                    "-c",
+                    "uname -r"
+                ])
+                .output()
+                .unwrap();
+            str::from_utf8(&kernel_command.stdout)
+                .unwrap()
+                .to_string()
+                .replace("\n", "")
+        }
+    }
+}
+
+pub fn usr_and_hostname() -> (String, String) {
+    let cmd = match cfg!(windows) {
+        true => {
+            Command::new("cmd")
+                .args(vec![
+                    "/C",
+                    "echo %username%@%computername%"
+                ])
+                .output()
+                .unwrap()
+                    },
+        false => {
+            Command::new("bash")
+                .args(vec![
+                    "-c",
+                    "echo \"`whoami`@`cat /proc/sys/kernel/hostname`\""
+                ])
+                .output()
+                .unwrap()
+        }
+    };
+    let mut output = str::from_utf8(&cmd.stdout)
+        .unwrap()
+        .splitn(2, '@');
+    let user = output.next().unwrap().to_string();
+    let hostname = output.next().unwrap().to_string().replace("\n", "");
+    (user, hostname)
+
 }
 
 fn append_uptime_field<'a>(value: i64, input: &'a mut String, suffix: &str) -> String {

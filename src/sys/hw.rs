@@ -1,6 +1,35 @@
-use std::{process::Command, str};
+use std::{fmt, process::Command, str};
+use crate::colored::*;
 
 use regex::Regex;
+
+pub struct HW {
+    pub cpu: String,
+    pub gpu: String,
+    pub mem: String,
+}
+
+impl fmt::Display for HW {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{} {}\n{} {}\n{} {}",
+            "CPU:".bold().blue(), &self.cpu,
+            "GPU:".bold().blue(), &self.gpu,
+            "MEM:".bold().blue(), &self.mem,
+        )
+    }
+}
+
+impl HW {
+    pub fn new() -> HW {
+        HW {
+            cpu: cpu_info(),
+            gpu: gpu_info(),
+            mem: mem_info(),
+        }
+    }
+}
 
 pub fn gpu_info() -> String {
     let gpu_info;
@@ -97,13 +126,22 @@ pub fn cpu_info() -> String {
                 .unwrap()
                 .split("\n")
                 .collect::<Vec<_>>();
+            println!("{}", items[2]);
 
-            let cores = items[0].parse::<u16>().unwrap();
-            let mut name = legal_regex.replace(items[1], "").to_string();
+            let cores = items[1].parse::<u16>().unwrap();
+            let mut name = legal_regex.replace(items[0], "").to_string();
             name = name_end_regex.replace(&name, "").to_string();
             let mhz = items[2].parse::<f32>().unwrap();
             cpu_string = format!("{} ({}) @ {}MHz", &name, &cores, &mhz);
         }
     }
     cpu_string
+}
+
+fn mem_info() -> String {
+    // We get the mem free and mem total and calculate from that
+    // linux: grep 'Mem[^A]' /proc/meminfo | sed 's/\w*:\s*//; s/\skB//' | tr '\n' '&'
+    // windows powershell: $ComputerMemory = Get-WmiObject -Class win32_operatingsystem -ErrorAction Stop; echo $ComputerMemory.TotalVisibleMemorySize $ComputerMemory.FreePhysicalMemory
+    // 1 KB = 0.00095367431640625 MiB
+    String::new()
 }
