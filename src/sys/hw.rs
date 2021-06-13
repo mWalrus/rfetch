@@ -118,7 +118,7 @@ pub fn cpu_info() -> String {
             let lscpu_output = Command::new("bash")
                 .args(vec![
                     "-c",
-                    r"lscpu | grep -E '^Core\(s\) per socket|^Model name|^CPU MHz' | sed 's/^.*:\s*//'"
+                    r"lscpu | grep -E '^Core\(s\) per socket|^Model name|^CPU max MHz' | sed 's/^.*:\s*//'"
                 ])
                 .output()
                 .unwrap();
@@ -126,7 +126,6 @@ pub fn cpu_info() -> String {
                 .unwrap()
                 .split("\n")
                 .collect::<Vec<_>>();
-            println!("{}", items[2]);
 
             let cores = items[1].parse::<u16>().unwrap();
             let mut name = legal_regex.replace(items[0], "").to_string();
