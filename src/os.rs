@@ -1,6 +1,35 @@
-use std::{process::Command, str};
+use std::{fmt, process::Command, str};
+use colored::Colorize;
 use regex::Regex;
 use std::collections::HashMap;
+
+pub struct OS {
+    name: String,
+    kernel: String,
+    uptime: String,
+}
+
+impl fmt::Display for OS {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "{} {}\n{} {}\n{} {}",
+            "OS:".bold().blue(), self.name,
+            "Kernel:".bold().blue(), self.kernel,
+            "Uptime:".bold().blue(), self.uptime,
+        )
+    }
+}
+
+impl OS {
+    pub fn new() -> OS {
+        OS {
+            name: os_name(),
+            kernel: kernel(),
+            uptime: uptime()
+        }
+    }
+}
 
 pub fn os_name() -> String {
     match cfg!(windows) {

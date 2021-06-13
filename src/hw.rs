@@ -49,29 +49,17 @@ pub fn gpu_info() -> String {
                 .replace("\r", "");
         },
         false => {
-            let vendor_cmd = Command::new("bash")
+            let gpu_cmd = Command::new("bash")
                 .args(vec![
                     "-c",
-                    r"lspci -vnn | grep VGA | sed 's/^.*[0-9]\]:\s//' | awk '{print $1}'"
+                    r"lspci -vnn | grep VGA | sed 's/^.*[0-9]\]:\s//;s/\]\s.*$//;s/\[//;s/Corporation\s//'"
                 ])
                 .output()
                 .unwrap();
-            let vendor = str::from_utf8(&vendor_cmd.stdout)
+            let gpu = str::from_utf8(&gpu_cmd.stdout)
                 .unwrap()
                 .replace("\n", "");
-
-            let model_cmd = Command::new("bash")
-                .args(vec![
-                    "-c",
-                    r"lspci -vnn | grep VGA | sed 's/^.*[0-9]\]:\s//;s/\]\s//' | awk -F'[' '{print $2}'"
-                ])
-                .output()
-                .unwrap();
-            let model = str::from_utf8(&model_cmd.stdout)
-                .unwrap()
-                .replace("\n", "");
-
-            gpu_info = format!("{} {}", vendor, model);
+            gpu_info = gpu;
         }
     }
     gpu_info
