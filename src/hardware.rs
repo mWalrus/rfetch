@@ -3,13 +3,13 @@ use crate::colored::*;
 
 use regex::Regex;
 
-pub struct HW {
+pub struct Hardware {
     pub cpu: String,
     pub gpu: String,
     pub mem: String,
 }
 
-impl fmt::Display for HW {
+impl fmt::Display for Hardware {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
@@ -21,9 +21,9 @@ impl fmt::Display for HW {
     }
 }
 
-impl HW {
-    pub fn new() -> HW {
-        HW {
+impl Hardware {
+    pub fn new() -> Hardware {
+        Hardware {
             cpu: cpu_info(),
             gpu: gpu_info(),
             mem: mem_info(),

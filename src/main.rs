@@ -2,17 +2,17 @@ extern crate colored;
 extern crate chrono;
 extern crate serde;
 
-mod hw;
-mod os;
+mod hardware;
+mod software;
 
-use hw::HW;
-use os::OS;
+use hardware::Hardware;
+use software::OS;
 
 fn main() {
-    let hardware = HW::new();
     let os = OS::new();
-    println!("{}", &hardware);
+    let hardware = Hardware::new();
     println!("{}", &os);
+    println!("{}", &hardware);
 }
 
 // Create structs for Hardware and OS/Software related things
