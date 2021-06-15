@@ -1,0 +1,30 @@
+[tasks.format]
+install_crate = "rustfmt"
+command = "cargo"
+args = ["fmt", "--", "--emit=files"]
+
+[tasks.clean]
+command = "cargo"
+args = ["clean"]
+
+[tasks.build]
+command = "cargo"
+args = ["build", "--release"]
+dependencies = ["clean"]
+
+[tasks.copy-binary]
+script = "sudo install -s -Dm755 ./target/release/rfetch /usr/bin/rfetch"
+
+[tasks.install]
+dependencies = [
+  "clean",
+  "build",
+  "copy-binary"
+]
+
+[tasks.update]
+dependencies = [
+  "clean",
+  "build",
+  "copy-binary"
+]
