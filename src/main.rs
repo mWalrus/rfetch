@@ -30,7 +30,7 @@ fn mem_info() {
     };
     let mem = str::from_utf8(&mem_command.stdout)
         .unwrap()
-        .replace("\n", "");
+        .replace('\n', "");
     println!("{}\t{}", "mem".bold().blue(), mem.truecolor(180, 180, 180));
 }
 
@@ -62,8 +62,8 @@ fn header() {
     let hostname = output.next()
         .unwrap()
         .to_string()
-        .replace("\n", "")
-        .replace("\r", "");
+        .replace('\n', "")
+        .replace('\r', "");
     println!("{}@{}", user.bold().magenta(), hostname.bold().magenta());
 }
 
@@ -81,8 +81,8 @@ pub fn os_name() {
                 .unwrap()
                 .to_owned();
             stdout.replace("Caption=", "")
-                .replace("\n", "")
-                .replace("\r", "")
+                .replace('\n', "")
+                .replace('\r', "")
         },
         false => {
             let name_cmd = Command::new("bash")
@@ -94,7 +94,7 @@ pub fn os_name() {
                 .unwrap();
             str::from_utf8(&name_cmd.stdout)
                 .unwrap()
-                .replace("\n", "")
+                .replace('\n', "")
         }
     };
     println!("{}\t{}", "os".bold().blue(), name.truecolor(180, 180, 180));
@@ -114,16 +114,16 @@ pub fn uptime() {
             let uptime_raw = str::from_utf8(&uptime_cmd.stdout)
                 .unwrap()
                 .to_owned();
-            let uptime_split = uptime_raw.split("\n").collect::<Vec<_>>();
+            let uptime_split = uptime_raw.split('\n').collect::<Vec<_>>();
             let mut output = String::new();
-            for field in uptime_split[2..=5].into_iter() {
+            for field in uptime_split[2..=5].iter() {
                 let mut iter = replace_regex.splitn(&field, 2);
                 let key = iter.next()
                     .unwrap()
                     .to_string();
                 let value = iter.next()
                     .unwrap()
-                    .replace("\r", "")
+                    .replace('\r', "")
                     .parse::<i64>()
                     .unwrap();
                 if value.gt(&0) {
@@ -151,7 +151,7 @@ pub fn uptime() {
                 .unwrap();
             str::from_utf8(&uptime_cmd.stdout)
                 .unwrap()
-                .replace("\n", "")
+                .replace('\n', "")
         }
     };
     println!("{}\t{}", "uptime".bold().blue(), uptime.truecolor(180, 180, 180));
@@ -180,7 +180,7 @@ pub fn kernel() {
     };
     let krnl = str::from_utf8(&kernel_command.stdout)
         .unwrap()
-        .replace("\n", "");
+        .replace('\n', "");
     println!("{}\t{}", "kernel".bold().blue(), &krnl.truecolor(180, 180, 180));
 }
 
