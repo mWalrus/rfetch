@@ -74,7 +74,11 @@ impl UserHost {
             .unwrap()
             .splitn(2, '@');
         let user = output.next().unwrap().to_string();
-        let hostname = output.next().unwrap().to_string().replace("\n", "");
+        let hostname = output.next()
+            .unwrap()
+            .to_string()
+            .replace("\n", "")
+            .replace("\r", "");
         UserHost {
             user,
             hostname
