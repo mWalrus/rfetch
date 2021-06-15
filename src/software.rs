@@ -126,7 +126,7 @@ pub fn kernel() -> String {
                 .unwrap();
             str::from_utf8(&kernel_command.stdout)
                 .unwrap()
-                .to_string()
+                .replace("\n", "")
         },
         false => {
             let kernel_command = Command::new("bash")
