@@ -2,7 +2,7 @@ extern crate colored;
 extern crate chrono;
 extern crate serde;
 
-use std::{fmt, process::Command, str};
+use std::{process::Command, str};
 use colored::Colorize;
 use regex::Regex;
 
@@ -34,89 +34,41 @@ fn mem_info() {
     println!("{}\t{}", "mem".bold().blue(), mem.truecolor(180, 180, 180));
 }
 
-pub struct OS {
-    name: String,
-    kernel: String,
-    uptime: String,
-}
-
-pub struct Header {
-    user: String,
-    hostname: String,
-}
-
-impl fmt::Display for OS {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(
-            f,
-            "{}\t{}\n{}\t{}\n{}\t{}",
-            "os".bold().blue(), self.name.truecolor(180, 180, 180),
-            "kernel".bold().blue(), self.kernel.truecolor(180, 180, 180),
-            "uptime".bold().blue(), self.uptime.truecolor(180, 180, 180),
-        )
-    }
-}
-impl fmt::Display for Header {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(
-            f,
-            "{}@{}",
-            self.user.bold().magenta(),
-            self.hostname.bold().magenta(),
-        )
-    }
-}
-
-impl OS {
-    pub fn new() -> OS {
-        OS {
-            name: os_name(),
-            kernel: kernel(),
-            uptime: uptime()
+fn header() {
+    let cmd = match cfg!(windows) {
+        true => {
+            Command::new("cmd")
+                .args(vec![
+                    "/C",
+                    "echo %username%@%computername%"
+                ])
+                .output()
+                .unwrap()
+                    },
+        false => {
+            Command::new("bash")
+                .args(vec![
+                    "-c",
+                    "echo \"`whoami`@`cat /proc/sys/kernel/hostname`\""
+                ])
+                .output()
+                .unwrap()
         }
-    }
+    };
+    let mut output = str::from_utf8(&cmd.stdout)
+        .unwrap()
+        .splitn(2, '@');
+    let user = output.next().unwrap().to_string();
+    let hostname = output.next()
+        .unwrap()
+        .to_string()
+        .replace("\n", "")
+        .replace("\r", "");
+    println!("{}@{}", user.bold().magenta(), hostname.bold().magenta());
 }
 
-impl Header {
-    pub fn new() -> Header {
-        let cmd = match cfg!(windows) {
-            true => {
-                Command::new("cmd")
-                    .args(vec![
-                        "/C",
-                        "echo %username%@%computername%"
-                    ])
-                    .output()
-                    .unwrap()
-                        },
-            false => {
-                Command::new("bash")
-                    .args(vec![
-                        "-c",
-                        "echo \"`whoami`@`cat /proc/sys/kernel/hostname`\""
-                    ])
-                    .output()
-                    .unwrap()
-            }
-        };
-        let mut output = str::from_utf8(&cmd.stdout)
-            .unwrap()
-            .splitn(2, '@');
-        let user = output.next().unwrap().to_string();
-        let hostname = output.next()
-            .unwrap()
-            .to_string()
-            .replace("\n", "")
-            .replace("\r", "");
-        Header {
-            user,
-            hostname
-        }
-    }
-}
-
-pub fn os_name() -> String {
-    match cfg!(windows) {
+pub fn os_name() {
+    let name = match cfg!(windows) {
         true => {
             let name_cmd = Command::new("cmd")
                 .args(vec![
@@ -128,11 +80,9 @@ pub fn os_name() -> String {
             let stdout = str::from_utf8(&name_cmd.stdout)
                 .unwrap()
                 .to_owned();
-            let name = stdout
-                .replace("Caption=", "")
+            stdout.replace("Caption=", "")
                 .replace("\n", "")
-                .replace("\r", "");
-            name.to_owned()
+                .replace("\r", "")
         },
         false => {
             let name_cmd = Command::new("bash")
@@ -142,16 +92,17 @@ pub fn os_name() -> String {
                 ])
                 .output()
                 .unwrap();
-            let stdout = str::from_utf8(&name_cmd.stdout).unwrap();
-            let name = &stdout.replace("\n", "");
-            name.to_owned()
+            str::from_utf8(&name_cmd.stdout)
+                .unwrap()
+                .replace("\n", "")
         }
-    }
+    };
+    println!("{}\t{}", "os".bold().blue(), name.truecolor(180, 180, 180));
 }
 
-pub fn uptime() -> String {
+pub fn uptime() {
     let replace_regex = Regex::new(r"\s{2,}:\s").unwrap();
-    match cfg!(windows) {
+    let uptime = match cfg!(windows) {
         true => {
             let uptime_cmd = Command::new("powershell")
                 .args(vec![
@@ -198,14 +149,15 @@ pub fn uptime() -> String {
                 ])
                 .output()
                 .unwrap();
-            let stdout = str::from_utf8(&uptime_cmd.stdout).unwrap();
-            let uptime = stdout.replace("\n", "");
-            uptime
+            str::from_utf8(&uptime_cmd.stdout)
+                .unwrap()
+                .replace("\n", "")
         }
-    }
+    };
+    println!("{}\t{}", "uptime".bold().blue(), uptime.truecolor(180, 180, 180));
 }
 
-pub fn kernel() -> String {
+pub fn kernel() {
     let kernel_command = match cfg!(windows) {
         true => {
             Command::new("cmd")
@@ -226,15 +178,16 @@ pub fn kernel() -> String {
                 .unwrap()
         }
     };
-    str::from_utf8(&kernel_command.stdout)
+    let krnl = str::from_utf8(&kernel_command.stdout)
         .unwrap()
-        .replace("\n", "")
+        .replace("\n", "");
+    println!("{}\t{}", "kernel".bold().blue(), &krnl.truecolor(180, 180, 180));
 }
 
 fn main() {
-    let user_hostname = Header::new();
-    let os = OS::new();
-    println!("{}", &user_hostname);
-    println!("{}", &os);
+    header();
+    os_name();
+    kernel();
+    uptime();
     mem_info();
 }
