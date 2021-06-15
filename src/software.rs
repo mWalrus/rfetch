@@ -9,6 +9,11 @@ pub struct OS {
     uptime: String,
 }
 
+pub struct UserHost {
+    user: String,
+    hostname: String,
+}
+
 impl fmt::Display for OS {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
@@ -27,6 +32,52 @@ impl OS {
             name: os_name(),
             kernel: kernel(),
             uptime: uptime()
+        }
+    }
+}
+
+impl fmt::Display for UserHost {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "{}@{}\n{}",
+            self.user.bold().blue(),
+            self.hostname.bold().blue(),
+            "-".repeat(self.user.len() + self.hostname.len() + 1)
+        )
+    }
+}
+
+impl UserHost {
+    pub fn new() -> UserHost {
+        let cmd = match cfg!(windows) {
+            true => {
+                Command::new("cmd")
+                    .args(vec![
+                        "/C",
+                        "echo %username%@%computername%"
+                    ])
+                    .output()
+                    .unwrap()
+                        },
+            false => {
+                Command::new("bash")
+                    .args(vec![
+                        "-c",
+                        "echo \"`whoami`@`cat /proc/sys/kernel/hostname`\""
+                    ])
+                    .output()
+                    .unwrap()
+            }
+        };
+        let mut output = str::from_utf8(&cmd.stdout)
+            .unwrap()
+            .splitn(2, '@');
+        let user = output.next().unwrap().to_string();
+        let hostname = output.next().unwrap().to_string().replace("\n", "");
+        UserHost {
+            user,
+            hostname
         }
     }
 }
@@ -142,36 +193,6 @@ pub fn kernel() -> String {
                 .replace("\n", "")
         }
     }
-}
-
-pub fn usr_and_hostname() -> (String, String) {
-    let cmd = match cfg!(windows) {
-        true => {
-            Command::new("cmd")
-                .args(vec![
-                    "/C",
-                    "echo %username%@%computername%"
-                ])
-                .output()
-                .unwrap()
-                    },
-        false => {
-            Command::new("bash")
-                .args(vec![
-                    "-c",
-                    "echo \"`whoami`@`cat /proc/sys/kernel/hostname`\""
-                ])
-                .output()
-                .unwrap()
-        }
-    };
-    let mut output = str::from_utf8(&cmd.stdout)
-        .unwrap()
-        .splitn(2, '@');
-    let user = output.next().unwrap().to_string();
-    let hostname = output.next().unwrap().to_string().replace("\n", "");
-    (user, hostname)
-
 }
 
 fn append_uptime_field<'a>(value: i64, input: &'a mut String, suffix: &str) -> String {
