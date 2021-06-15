@@ -127,7 +127,7 @@ fn mem_info() -> String {
             let mem_command = Command::new("powershell")
                 .args(vec![
                     "-Command",
-                    "Get-CMIInstance Win32-OperatingSystem | % {'{0}MiB / {1}MiB'} -f [Int](($_.TotalVisibleMemorySize - $_.FreePhysicalMemory)*0.000953674), [Int]($_.TotalVisibleMemorySize*0.000953674)}"
+                    "Get-CIMInstance Win32_OperatingSystem | % {'{0}MiB / {1}MiB' -f [Int](($_.TotalVisibleMemorySize - $_.FreePhysicalMemory)*0.000953674), [Int]($_.TotalVisibleMemorySize*0.000953674)}"
                 ])
                 .output()
                 .unwrap();
