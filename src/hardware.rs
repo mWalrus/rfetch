@@ -69,12 +69,6 @@ pub fn cpu_info() -> String {
     let legal_regex = Regex::new(r"\((TM|tm|R|r)\)").unwrap();
     let name_end_regex = Regex::new(r"\s@\s\d+(\.\d+)?(MHz|GHz)").unwrap();
 
-    // windows: wmic cpu get name, maxclockspeed, numberofcores
-    // linux:
-    //      mhz = sudo dmesg | grep "MHz" | head -1 | awk '{print $5}'
-    //      cores = grep -m1 "^siblings" /proc/cpuinfo
-    //
-    let cpu_string;
     match cfg!(windows) {
         true => {
             // run command and get output bytes
@@ -100,7 +94,7 @@ pub fn cpu_info() -> String {
             name = legal_regex.replace_all(&name, "").to_string();
             let cores = cpu_info[2].parse::<u16>().unwrap();
 
-            cpu_string = format!("{} ({}) @ {}MHz", &name, &cores, &mhz);
+            format!("{} ({}) @ {}MHz", &name, &cores, &mhz)
         },
         false => {
             let lscpu_output = Command::new("bash")
@@ -119,16 +113,41 @@ pub fn cpu_info() -> String {
             let mut name = legal_regex.replace(items[0], "").to_string();
             name = name_end_regex.replace(&name, "").to_string();
             let mhz = items[2].parse::<f32>().unwrap();
-            cpu_string = format!("{} ({}) @ {}MHz", &name, &cores, &mhz);
+            format!("{} ({}) @ {}MHz", &name, &cores, &mhz)
         }
     }
-    cpu_string
 }
 
 fn mem_info() -> String {
     // We get the mem free and mem total and calculate from that
     // linux: grep 'Mem[^A]' /proc/meminfo | sed 's/\w*:\s*//; s/\skB//' | tr '\n' '&'
-    // windows powershell: $ComputerMemory = Get-WmiObject -Class win32_operatingsystem -ErrorAction Stop; echo $ComputerMemory.TotalVisibleMemorySize $ComputerMemory.FreePhysicalMemory
-    // 1 KB = 0.00095367431640625 MiB
-    String::new()
+    // windows powershell: Get-CMIInstance Win32-OperatingSystem | % {'{0}MiB / {1}MiB'} -f [Int](($_.TotalVisibleMemorySize - $_.FreePhysicalMemory)*0.000953674), [Int]($_.TotalVisibleMemorySize*0.000953674)}
+    match cfg!(windows) {
+        true => {
+            let mem_command = Command::new("powershell")
+                .args(vec![
+                    "-Command",
+                    "Get-CMIInstance Win32-OperatingSystem | % {'{0}MiB / {1}MiB'} -f [Int](($_.TotalVisibleMemorySize - $_.FreePhysicalMemory)*0.000953674), [Int]($_.TotalVisibleMemorySize*0.000953674)}"
+                ])
+                .output()
+                .unwrap();
+            let mem = str::from_utf8(&mem_command.stdout)
+                .unwrap()
+                .replace("\n", "");
+            mem
+        },
+        false => {
+            let mem_command = Command::new("bash")
+                .args(vec![
+                    "-c",
+                    "free -m | awk -v OFS=' / ' -vsuf='MiB' '/Mem:/ {print $3 suf, $2 suf}'"
+                ])
+                .output()
+                .unwrap();
+            let mem = str::from_utf8(&mem_command.stdout)
+                .unwrap()
+                .replace("\n", "");
+            mem
+        }
+    }
 }
