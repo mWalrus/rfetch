@@ -13,10 +13,10 @@ impl fmt::Display for Hardware {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            "{} {}\n{} {}\n{} {}",
-            "CPU:".bold().blue(), &self.cpu,
-            "GPU:".bold().blue(), &self.gpu,
-            "MEM:".bold().blue(), &self.mem,
+            "{}\t{}\n{}\t{}\n{}\t{}",
+            "cpu".bold().blue(), &self.cpu.truecolor(180, 180, 180),
+            "gpu".bold().blue(), &self.gpu.truecolor(180, 180, 180),
+            "mem".bold().blue(), &self.mem.truecolor(180, 180, 180),
         )
     }
 }

@@ -9,7 +9,7 @@ pub struct OS {
     uptime: String,
 }
 
-pub struct UserHost {
+pub struct Header {
     user: String,
     hostname: String,
 }
@@ -18,10 +18,10 @@ impl fmt::Display for OS {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            "{} {}\n{} {}\n{} {}",
-            "OS:".bold().blue(), self.name,
-            "Kernel:".bold().blue(), self.kernel,
-            "Uptime:".bold().blue(), self.uptime,
+            "{}\t{}\n{}\t{}\n{}\t{}",
+            "os".bold().blue(), self.name.truecolor(180, 180, 180),
+            "kernel".bold().blue(), self.kernel.truecolor(180, 180, 180),
+            "uptime".bold().blue(), self.uptime.truecolor(180, 180, 180),
         )
     }
 }
@@ -36,20 +36,19 @@ impl OS {
     }
 }
 
-impl fmt::Display for UserHost {
+impl fmt::Display for Header {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            "{}@{}\n{}",
-            self.user.bold().blue(),
-            self.hostname.bold().blue(),
-            "-".repeat(self.user.len() + self.hostname.len() + 1)
+            "{}@{}",
+            self.user.bold().magenta(),
+            self.hostname.bold().magenta(),
         )
     }
 }
 
-impl UserHost {
-    pub fn new() -> UserHost {
+impl Header {
+    pub fn new() -> Header {
         let cmd = match cfg!(windows) {
             true => {
                 Command::new("cmd")
@@ -79,7 +78,7 @@ impl UserHost {
             .to_string()
             .replace("\n", "")
             .replace("\r", "");
-        UserHost {
+        Header {
             user,
             hostname
         }
@@ -150,7 +149,18 @@ pub fn uptime() -> String {
             }
             let mut output = String::new();
             for (key, value) in uptime_map.into_iter() {
-                append_uptime_field(value, &mut output, &key);
+                if value.gt(&0) {
+                    if !output.is_empty() {
+                        output.push_str(", ");
+                    }
+                    output.push_str(
+                        &format!(
+                            "{} {}",
+                            &value,
+                            &key,
+                        )
+                    );
+                }
             }
             output
         },
@@ -170,47 +180,27 @@ pub fn uptime() -> String {
 }
 
 pub fn kernel() -> String {
-    match cfg!(windows) {
+    let kernel_command = match cfg!(windows) {
         true => {
-            let kernel_command = Command::new("cmd")
+            Command::new("cmd")
                 .args(vec![
                     "/C",
                     "echo %os%"
                 ])
                 .output()
-                .unwrap();
-            str::from_utf8(&kernel_command.stdout)
                 .unwrap()
-                .replace("\n", "")
         },
         false => {
-            let kernel_command = Command::new("bash")
+            Command::new("bash")
                 .args(vec![
                     "-c",
                     "uname -r"
                 ])
                 .output()
-                .unwrap();
-            str::from_utf8(&kernel_command.stdout)
                 .unwrap()
-                .to_string()
-                .replace("\n", "")
         }
-    }
-}
-
-fn append_uptime_field<'a>(value: i64, input: &'a mut String, suffix: &str) -> String {
-    if value.gt(&0) {
-        if !input.is_empty() {
-            input.push_str(", ");
-        }
-        input.push_str(
-            &format!(
-                "{} {}",
-                &value,
-                suffix,
-            )
-        );
-    }
-    input.clone()
+    };
+    str::from_utf8(&kernel_command.stdout)
+        .unwrap()
+        .replace("\n", "")
 }

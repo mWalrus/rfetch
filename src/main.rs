@@ -6,10 +6,10 @@ mod hardware;
 mod software;
 
 use hardware::Hardware;
-use software::{OS, UserHost};
+use software::{OS, Header};
 
 fn main() {
-    let user_hostname = UserHost::new();
+    let user_hostname = Header::new();
     let os = OS::new();
     let hardware = Hardware::new();
     println!("{}", &user_hostname);
