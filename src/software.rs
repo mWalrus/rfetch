@@ -134,7 +134,7 @@ pub fn uptime() -> String {
                 .unwrap()
                 .to_owned();
             let uptime_split = uptime_raw.split("\n").collect::<Vec<_>>();
-            let mut uptime_map = HashMap::new();
+            let mut output = String::new();
             for field in uptime_split[2..=5].into_iter() {
                 let mut iter = replace_regex.splitn(&field, 2);
                 let key = iter.next()
@@ -145,10 +145,6 @@ pub fn uptime() -> String {
                     .replace("\r", "")
                     .parse::<i64>()
                     .unwrap();
-                uptime_map.insert(key, value);
-            }
-            let mut output = String::new();
-            for (key, value) in uptime_map.into_iter() {
                 if value.gt(&0) {
                     if !output.is_empty() {
                         output.push_str(", ");
