@@ -52,7 +52,7 @@ pub fn gpu_info() -> String {
             let gpu_cmd = Command::new("bash")
                 .args(vec![
                     "-c",
-                    r"lspci | grep VGA | sed 's/^.*[0-9]\]:\s//;s/\]\s.*$//;s/\[//;s/Corporation\s//'"
+                    r"lspci | grep VGA | sed 's/^.*:\s//;s/\[\|\]//g;s/\s(.*)//;s/Corporation\s//'"
                 ])
                 .output()
                 .unwrap();
