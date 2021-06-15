@@ -1,7 +1,6 @@
 use std::{fmt, process::Command, str};
 use colored::Colorize;
 use regex::Regex;
-use std::collections::HashMap;
 
 pub struct OS {
     name: String,
