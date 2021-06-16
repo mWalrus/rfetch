@@ -6,7 +6,7 @@ use std::{process::Command, str};
 use colored::Colorize;
 use regex::Regex;
 
-fn mem_info() {
+fn mem_info() -> String {
     let mem_command = match cfg!(windows) {
         true => {
             // We get the mem free and mem total and calculate from that
@@ -28,13 +28,12 @@ fn mem_info() {
                 .unwrap()
         }
     };
-    let mem = str::from_utf8(&mem_command.stdout)
+    str::from_utf8(&mem_command.stdout)
         .unwrap()
-        .replace('\n', "");
-    println!("{}\t{}", "mem".bold().blue(), mem.truecolor(180, 180, 180));
+        .replace('\n', "")
 }
 
-fn header() {
+fn header() -> (String, String) {
     let cmd = match cfg!(windows) {
         true => {
             Command::new("cmd")
@@ -64,11 +63,11 @@ fn header() {
         .to_string()
         .replace('\n', "")
         .replace('\r', "");
-    println!("{}@{}", user.bold().magenta(), hostname.bold().magenta());
+    (user, hostname)
 }
 
-pub fn os_name() {
-    let name = match cfg!(windows) {
+pub fn os_name() -> String {
+    match cfg!(windows) {
         true => {
             let name_cmd = Command::new("cmd")
                 .args(vec![
@@ -96,13 +95,12 @@ pub fn os_name() {
                 .unwrap()
                 .replace('\n', "")
         }
-    };
-    println!("{}\t{}", "os".bold().blue(), name.truecolor(180, 180, 180));
+    }
 }
 
-pub fn uptime() {
+pub fn uptime() -> String {
     let replace_regex = Regex::new(r"\s{2,}:\s").unwrap();
-    let uptime = match cfg!(windows) {
+    match cfg!(windows) {
         true => {
             let uptime_cmd = Command::new("powershell")
                 .args(vec![
@@ -153,11 +151,10 @@ pub fn uptime() {
                 .unwrap()
                 .replace('\n', "")
         }
-    };
-    println!("{}\t{}", "uptime".bold().blue(), uptime.truecolor(180, 180, 180));
+    }
 }
 
-pub fn kernel() {
+pub fn kernel() -> String {
     let kernel_command = match cfg!(windows) {
         true => {
             Command::new("cmd")
@@ -178,16 +175,19 @@ pub fn kernel() {
                 .unwrap()
         }
     };
-    let krnl = str::from_utf8(&kernel_command.stdout)
+    str::from_utf8(&kernel_command.stdout)
         .unwrap()
-        .replace('\n', "");
-    println!("{}\t{}", "kernel".bold().blue(), &krnl.truecolor(180, 180, 180));
+        .replace('\n', "")
 }
 
 fn main() {
-    header();
-    os_name();
-    kernel();
-    uptime();
-    mem_info();
+    let (user, hostname) = header();
+    println!(
+        "{}@{}\n{}\t{}\n{}\t{}\n{}\t{}\n{}\t{}",
+        user.bold().magenta(), hostname.bold().magenta(),
+        "mem".bold().blue(), os_name().truecolor(180, 180, 180),
+        "kernel".bold().blue(), kernel().truecolor(180, 180, 180),
+        "uptime".bold().blue(), uptime().truecolor(180, 180, 180),
+        "mem".bold().blue(), mem_info().truecolor(180, 180, 180)
+    )
 }
