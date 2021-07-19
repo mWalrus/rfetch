@@ -8,7 +8,6 @@ use regex::Regex;
 
 #[cfg(target_os = "windows")]
 fn mem_info() -> String {
-    
     // We get the mem free and mem total and calculate from that
     let cmd = Command::new("powershell")
         .args(vec![
