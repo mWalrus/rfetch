@@ -75,8 +75,7 @@ fn header() -> (String, String) {
     let hostname = output.next()
         .unwrap()
         .to_string()
-        .replace('\n', "")
-        .replace('\r', "");
+        .replace('\n', "");
     (user, hostname)
 }
 
