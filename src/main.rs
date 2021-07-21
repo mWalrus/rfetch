@@ -80,7 +80,7 @@ fn header() -> (String, String) {
 }
 
 #[cfg(target_os = "windows")]
-pub fn os_name() -> String {
+pub fn os() -> String {
    let cmd = Command::new("cmd")
         .args(vec![
             "/C",
@@ -98,7 +98,8 @@ pub fn os_name() -> String {
         .replace('\r', "")
 }
 
-pub fn os_name() -> String {
+#[cfg(target_os = "linux")]
+pub fn os() -> String {
     let cmd = Command::new("bash")
         .args(vec![
             "-c",
@@ -216,12 +217,21 @@ pub fn kernel() -> String {
 
 fn main() {
     let (user, hostname) = header();
+    let os = os();
+    let kernel = kernel();
+    let uptime = uptime();
+    let mem = mem_info();
     println!(
         "{}@{}\n{}\t{}\n{}\t{}\n{}\t{}\n{}\t{}",
-        user.bold().magenta(), hostname.bold().magenta(),
-        "mem".bold().blue(), os_name().truecolor(180, 180, 180),
-        "kernel".bold().blue(), kernel().truecolor(180, 180, 180),
-        "uptime".bold().blue(), uptime().truecolor(180, 180, 180),
-        "mem".bold().blue(), mem_info().truecolor(180, 180, 180)
+        user.bold().magenta(),
+        hostname.bold().magenta(),
+        "os".bold().blue(),
+        os.truecolor(180, 180, 180),
+        "kernel".bold().blue(),
+        kernel.truecolor(180, 180, 180),
+        "uptime".bold().blue(),
+        uptime.truecolor(180, 180, 180),
+        "mem".bold().blue(),
+        mem.truecolor(180, 180, 180)
     )
 }
