@@ -4,6 +4,7 @@ extern crate serde;
 
 use std::{process::Command, str};
 use colored::Colorize;
+#[cfg(target_os = "windows")]
 use regex::Regex;
 
 #[cfg(target_os = "windows")]
