@@ -5,7 +5,53 @@ extern crate serde;
 use colored::Colorize;
 #[cfg(target_os = "windows")]
 use regex::Regex;
-use std::{process::Command, str};
+use std::{process::Command, str, fmt};
+
+struct RFetch {
+    user: String,
+    hostname: String,
+    os: String,
+    kernel: String,
+    uptime: String,
+    mem: String,
+}
+
+impl RFetch {
+    fn new() -> Self {
+        let (user, hostname) = header();
+        let os = os();
+        let kernel = kernel();
+        let uptime = uptime();
+        let mem = mem_info();
+        Self {
+            user,
+            hostname,
+            os,
+            kernel,
+            uptime,
+            mem
+        }
+    }
+}
+
+impl fmt::Display for RFetch {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "{}@{}\n{}\t{}\n{}\t{}\n{}\t{}\n{}\t{}",
+            self.user.bold().magenta(),
+            self.hostname.bold().magenta(),
+            "os".bold().blue(),
+            self.os.truecolor(180, 180, 180),
+            "kernel".bold().blue(),
+            self.kernel.truecolor(180, 180, 180),
+            "uptime".bold().blue(),
+            self.uptime.truecolor(180, 180, 180),
+            "mem".bold().blue(),
+            self.mem.truecolor(180, 180, 180)
+        )
+    }
+}
 
 #[cfg(target_os = "windows")]
 fn header() -> (String, String) {
@@ -173,22 +219,6 @@ fn mem_info() -> String {
 }
 
 fn main() {
-    let (user, hostname) = header();
-    let os = os();
-    let kernel = kernel();
-    let uptime = uptime();
-    let mem = mem_info();
-    println!(
-        "{}@{}\n{}\t{}\n{}\t{}\n{}\t{}\n{}\t{}",
-        user.bold().magenta(),
-        hostname.bold().magenta(),
-        "os".bold().blue(),
-        os.truecolor(180, 180, 180),
-        "kernel".bold().blue(),
-        kernel.truecolor(180, 180, 180),
-        "uptime".bold().blue(),
-        uptime.truecolor(180, 180, 180),
-        "mem".bold().blue(),
-        mem.truecolor(180, 180, 180)
-    )
+    let rfetch = RFetch::new();
+    println!("{}", rfetch);
 }
