@@ -13,17 +13,15 @@ struct Uptime(u64);
 
 impl fmt::Display for Uptime {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut dur = Duration::seconds(self.0 as i64);
+        let d = Duration::seconds(self.0 as i64);
 
-        let hours = dur.num_hours();
-        dur = dur - Duration::hours(hours);
-
-        let minutes = dur.num_minutes();
-        dur = dur - Duration::minutes(minutes);
-
-        let seconds = dur.num_seconds();
-
-        write!(f, "{:0>2}h {:0>2}m {:0>2}s", hours, minutes, seconds)
+        write!(
+            f,
+            "{:0>2}h {:0>2}m {:0>2}s",
+            d.num_hours(),
+            d.num_minutes() % 60,
+            d.num_seconds() % 60,
+        )
     }
 }
 
