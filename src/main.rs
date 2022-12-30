@@ -1,10 +1,31 @@
 use chrono::Duration;
 use colored::{ColoredString, Colorize};
-use std::io::{self, stdout, Write};
+use std::{
+    fmt,
+    io::{self, stdout, Write},
+};
 use sysinfo::{
     get_current_pid, Pid, ProcessExt, ProcessRefreshKind, RefreshKind, System, SystemExt, User,
     UserExt,
 };
+
+struct Uptime(u64);
+
+impl fmt::Display for Uptime {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let mut dur = Duration::seconds(self.0 as i64);
+
+        let hours = dur.num_hours();
+        dur = dur - Duration::hours(hours);
+
+        let minutes = dur.num_minutes();
+        dur = dur - Duration::minutes(minutes);
+
+        let seconds = dur.num_seconds();
+
+        write!(f, "{:0>2}h {:0>2}m {:0>2}s", hours, minutes, seconds)
+    }
+}
 
 fn main() -> io::Result<()> {
     // only read specifics
@@ -29,7 +50,6 @@ fn main() -> io::Result<()> {
         user.name().bright_magenta().bold(),
         sys.host_name().unwrap_or_default().magenta().bold(),
     )?;
-
     write!(lock, "{}\t{}\n", title("os"), value(sys.name()))?;
     write!(
         lock,
@@ -37,7 +57,7 @@ fn main() -> io::Result<()> {
         title("kernel"),
         value(sys.kernel_version())
     )?;
-    write!(lock, "{}\t{}\n", title("uptime"), uptime_fmt(sys.uptime()))?;
+    write!(lock, "{}\t{}\n", title("uptime"), Uptime(sys.uptime()))?;
     write!(
         lock,
         "{}\t{}MiB/{}MiB\n",
@@ -73,34 +93,4 @@ fn evaluate_invoking_user(s: &System, pid: Pid) -> Result<&User, String> {
         Some(user) => Ok(user),
         None => Err(format!("Failed to get user with id {uid:?}"))?,
     }
-}
-
-fn uptime_fmt(u: u64) -> String {
-    let mut dur = Duration::seconds(u as i64);
-
-    let hours = dur.num_hours();
-    dur = dur - Duration::hours(hours);
-
-    let minutes = dur.num_minutes();
-    dur = dur - Duration::minutes(minutes);
-
-    let seconds = dur.num_seconds();
-
-    let h = if hours == 0 {
-        "".into()
-    } else {
-        format!("{}h", hours)
-    };
-    let m = if hours == 0 {
-        "".into()
-    } else {
-        format!("{}m", minutes)
-    };
-    let s = if hours == 0 {
-        "".into()
-    } else {
-        format!("{}s", seconds)
-    };
-
-    format!("{h} {m} {s}")
 }
