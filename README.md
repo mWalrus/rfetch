@@ -1,6 +1,7 @@
 # rFetch - minimal system info fetcher
-
-![Demo](./demo.png "Demo")
+<p align="center">
+  <img src="./demo.png" alt="demo" />
+</p>
 
 A small performant system fetcher displaying only a small set of information about your system.
 
