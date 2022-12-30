@@ -2,15 +2,10 @@
 
 ![Demo](./demo.png "Demo")
 
-rFetch is similar to neofetch but without the numerous options and distro specific artworks and it is written in Rust ;).<br>
-rFetch is less than 200 lines and only displays what you need.<br>
-Currently supports Linux and Windows.
+A small performant system fetcher displaying only a small set of information about your system.
 
 ## Install
 Make sure to have cargo make installed (`cargo install --force cargo-make`)
 1. `git clone https://github.com/mWalrus/rfetch.git`
 2. `cd rfetch`
 3. `cargo make install`
-
-Performance improvements will come :).<br>
-Also, any suggestions are welcome!
