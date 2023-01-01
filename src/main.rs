@@ -25,6 +25,7 @@ impl fmt::Display for Uptime {
     }
 }
 
+#[rustfmt::skip]
 fn main() -> io::Result<()> {
     // only read specifics
     let mut sys = System::new_with_specifics(RefreshKind::new().with_memory().with_users_list());
@@ -42,27 +43,11 @@ fn main() -> io::Result<()> {
     // take lock on stdout for entire printing session (faster)
     let mut lock = stdout().lock();
 
-    write!(
-        lock,
-        "{}@{}\n",
-        user.name().bright_magenta().bold(),
-        sys.host_name().unwrap_or_default().magenta().bold(),
-    )?;
-    write!(lock, "{}\t{}\n", title("os"), value(sys.name()))?;
-    write!(
-        lock,
-        "{}\t{}\n",
-        title("kernel"),
-        value(sys.kernel_version())
-    )?;
-    write!(lock, "{}\t{}\n", title("uptime"), Uptime(sys.uptime()))?;
-    write!(
-        lock,
-        "{}\t{}MiB/{}MiB\n",
-        title("mem"),
-        sys.used_memory() / 1024 / 1024,
-        sys.total_memory() / 1024 / 1024
-    )?;
+    write!(lock, "{}@{}\n",           user.name().bright_magenta().bold(), value(sys.host_name()).magenta().bold())?;
+    write!(lock, "{}\t{}\n",          title("os"), value(sys.name()))?;
+    write!(lock, "{}\t{}\n",          title("kernel"), value(sys.kernel_version()))?;
+    write!(lock, "{}\t{}\n",          title("uptime"), Uptime(sys.uptime()))?;
+    write!(lock, "{}\t{}MiB/{}MiB\n", title("mem"), sys.used_memory() / 1024 / 1024, sys.total_memory() / 1024 / 1024)?;
 
     Ok(())
 }
