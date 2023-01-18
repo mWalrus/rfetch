@@ -35,10 +35,7 @@ fn main() -> io::Result<()> {
     // only fetch the information for the current process id
     sys.refresh_process_specifics(pid, ProcessRefreshKind::new().with_user());
 
-    let user = match evaluate_invoking_user(&sys, pid) {
-        Ok(u) => u,
-        Err(e) => panic!("{}", e),
-    };
+    let user = evaluate_invoking_user(&sys, pid);
 
     // take lock on stdout for entire printing session (faster)
     let mut lock = stdout().lock();
@@ -60,20 +57,12 @@ fn value<T: Default>(v: Option<T>) -> T {
     v.unwrap_or_default()
 }
 
-fn evaluate_invoking_user(s: &System, pid: Pid) -> Result<&User, String> {
-    let proc = match s.process(pid) {
-        Some(p) => p,
-        None => Err(format!("Failed to get process with pid {pid}"))?,
-    };
+fn evaluate_invoking_user(s: &System, pid: Pid) -> &User {
+    let proc = s.process(pid).expect("Failed to get process");
+    let uid = proc
+        .user_id()
+        .expect("Failed to get the user owning the current process");
 
-    let uid = match proc.user_id() {
-        Some(id) => id,
-        None => Err(format!(
-            "Failed to get the user owning process with pid {pid}"
-        ))?,
-    };
-    match s.get_user_by_id(uid) {
-        Some(user) => Ok(user),
-        None => Err(format!("Failed to get user with id {uid:?}"))?,
-    }
+    s.get_user_by_id(uid)
+        .expect("Failed to get user with id {uid:?}")
 }
