@@ -58,11 +58,14 @@ fn value<T: Default>(v: Option<T>) -> T {
 }
 
 fn evaluate_invoking_user(s: &System, pid: Pid) -> &User {
-    let proc = s.process(pid).expect("Failed to get process");
-    let uid = proc
-        .user_id()
-        .expect("Failed to get the user owning the current process");
+    let proc = s
+        .process(pid)
+        .unwrap_or_else(|| panic!("Failed to get process with pid {pid}"));
+
+    let uid = proc.user_id().unwrap_or_else(|| {
+        panic!("Failed to get the user owning the current process (pid: {pid})")
+    });
 
     s.get_user_by_id(uid)
-        .expect("Failed to get user with id {uid:?}")
+        .unwrap_or_else(|| panic!("Failed to get user with id {uid:?}"))
 }
