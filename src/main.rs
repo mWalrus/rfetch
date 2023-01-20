@@ -44,15 +44,22 @@ fn main() -> io::Result<()> {
     write!(lock, "{}\t{}\n",            title("os"), value(sys.name()))?;
     write!(lock, "{}\t{}\n",            title("kernel"), value(sys.kernel_version()))?;
     write!(lock, "{}\t{}\n",            title("uptime"), Uptime(sys.uptime()))?;
-    write!(lock, "{}\t{}MiB / {}MiB\n", title("mem"), sys.used_memory() / 1024 / 1024, sys.total_memory() / 1024 / 1024)?;
+    write!(lock, "{}\t{}MiB / {}MiB\n", title("mem"), as_mib(sys.used_memory()), as_mib(sys.total_memory()))?;
 
     Ok(())
 }
 
+#[inline(always)]
+fn as_mib(n: u64) -> u64 {
+    n / 1024 / 1024
+}
+
+#[inline(always)]
 fn title(t: &'static str) -> ColoredString {
     t.bold().bright_blue()
 }
 
+#[inline(always)]
 fn value<T: Default>(v: Option<T>) -> T {
     v.unwrap_or_default()
 }
